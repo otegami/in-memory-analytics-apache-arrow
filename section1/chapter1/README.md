@@ -152,4 +152,106 @@ Struct<name: VarBinary, age: Int32>
   - Value Bugger: 1, 2, UNF, 4
 
 ### Union arrays - sparse and dense
+一つのカラムが複数のタイプを持っている際に利用します
+Struct array が、順序づけられたシーケンスなフィールドであるのに対して、順序づけられたシーケンスなタイプです。
 
+2 つの全く異なる Union Layout が存在し、ユースケースによって最適化されている
+- Dense: 密集
+  - 混合型の配列を 5 bytes オーバーヘッドと共に表現している
+  - それぞれの型に1つの Child Array を持つ
+  - 一つの Type Buffer を持つ
+    - 8 bit の符号化数値のバッファーであり、対応する slot の Type ID を持つ
+  - 一つのオフセット Buffer を持つ
+    - 32 bit の符号化数値のバッファーであり、対応する Child Array の中のオフセットを示している?
+Dense Union は、オーバーラッピングされていないフィールドを含んだ structs の union を利用する際に使われる
+-> Union<s1: Struct1, s2: Struct2, s3: Struct3, ...>
+-> Union<f: float, i: int32>
+  - [{f = 1.2}, null, {f = 3.2}, {i = 5}] 
+
+Types Buffer(int8) => 0001
+Offsets Buffer(int32) => 0120
+
+Field-0 Child Array(float)
+- Length: 3
+- NullCount: 1
+- Validity Bitmap: 00000101
+- Value Buffer: 1.2, UNF, 3.4
+
+Field-1 Child Array(int32)
+- Length: 1
+- NullCount: 0
+- Validity Bitmap: Not Required
+- ValueBuffer: 5
+
+- Sparse: まばら
+
+Types Buffer(int8) => 0001
+^ Offset Buffer は存在しないので、どちらも同じ長さの Array になる
+
+Field-0　Child Array(float)
+- Length: 4
+- NullCount: 2
+- ValidityBitmap: 00000101
+- Value Buffer: 1.2, UNF, 3.4, UNF
+
+Field-1 Child Array(Int32)
+- Length: 4
+- NullCount: 3
+- ValidityBitmap: 00001000
+- Value Buffer: UNF, UNF, UNF, 5
+
+^ dense と異なりスペースは増えてしまうが、
+ベクトル式を評価する際に容易になります。
+
+### Dictionary-encoded arrays
+多くの連続した値が続く時に、Dictonary-encoeded を利用すると多くのスペースを削減できる
+
+=> String Array { ["foo", "bar", "foo", "bar", "null", "baz"] }
+
+Length: 6
+Null Count: 1
+Offsets Buffer: 0, 3, 6, 9, 12, 12, 15
+Value Buffer: foo, bar, foo, bar, baz
+
+=> Dictionary Encoded String Array { ["foo", "bar", "foo", "bar", "null", "baz"] }
+
+Length: 6
+Null Count: 1
+Validity Bitmap: 00101111
+Value Buffer: 0, 1, 0, 1, UNF, 2
+- Dictionary Array String
+- Length: 3
+- Null Count: 0
+- Validity Bitmap: Not Required <- Null がないからですか？
+- Offests Buffer: 0, 3, 6, 9
+- Value Buffer: foo, bar, baz
+
+### Null Arrays
+type set: null
+Lenght: Array の長さそのまま
+Validity Bitmap: Not Required <-　全て Null だから
+Data Buffer: Not Required
+
+## Hot to speak Arrow
+physical layout をみてきたが、logical types をみていきましょう！
+
+- Null logical type; Null physical type
+- Boolean: Primitive array with data represented as a bitmap
+- Primitive integer types: Primitive, fixed-size array layout
+  - Int8, Uint8, Int16, Uint16, Int32, Uint32, Int64, and Uint64
+- Floating-point types: Primitive fixed-size array layout
+  - Float16, Float32(float), and Float64(double)
+- VarBinary types: Variable length binary physical layout
+  - Binary and String(UTF-8)
+  - LargeBinary and LargeString(variable length binary with 64-bit offsets) 
+- Decimal128 And Decimal256: 128-bit and 256-bit fixed-size primitive arrays with metadata
+- Fixed-size binary: Fixed-size binary physical layout
+- Temporal types: Primitive fixed binary physical layout
+  - Date types: Dates with no time information
+    - Date32: 32-bit integers が Unix Epoch(1970-01-01)からの日にちの数値を表現する
+    - Date64: 64-bit integers が Unix Epoch(1970-01-01)からmsで表す
+  - Time types: TIme information with no date attached
+    - Time32: 32-bit integers が深夜から経過した時間を秒あるいはミリ秒で表現する
+    - Time64: 64-bit integers が深夜から経過した時間をマイクロ秒あるいはナノ秒で表現する
+- Timestamps: 64-bit integers Unix Epoch からの時間を表す（ただし閏年は考慮しない）
+  - メタデータでユニット(秒、ミリ秒、マイクロ秒、ナノ秒)をで定義します。任意で タイムゾーンを string で加える
