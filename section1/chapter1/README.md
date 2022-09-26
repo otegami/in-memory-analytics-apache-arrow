@@ -255,3 +255,26 @@ physical layout をみてきたが、logical types をみていきましょう�
     - Time64: 64-bit integers が深夜から経過した時間をマイクロ秒あるいはナノ秒で表現する
 - Timestamps: 64-bit integers Unix Epoch からの時間を表す（ただし閏年は考慮しない）
   - メタデータでユニット(秒、ミリ秒、マイクロ秒、ナノ秒)をで定義します。任意で タイムゾーンを string で加える
+- Interval types: カレンダーアーティファクトの点で完全な時間の長さを表す?(ちょっと意味が取れてない)
+  - YearMonth: 32-bit 符号化数値として経過した整数年月
+  - DayTime: 2つの連続した 4-byte の符号化付き数値として経過日数とミリ秒を数値であわわす
+  - MonthDayNano: 経過月、日にちとナノ秒を連続した 16 byteのブロックとして保存する。月と日数を2つの 32-bit 数値表し、深夜からの経過を64-bitのナノ秒で表す
+  - Duration: 64-bit の数値と秒、ミリ秒、マイクロ秒またはナノ秒をメタデータによって特定されるユニットで、カレンダーに紐づかない時間を完全な長さで表す
+- List & FixedSizeList: これらは物理的なレイアウトを表す
+  - LargeList: 64-bit のオフセットで表されるリストタイプ
+- Struct, DenseUnion & SparseUnion types: すでにみているので割愛
+- Map: 論理的なタイプであり、List<entries: Struct<key: K, value: V>> として物理的に表される。
+  - メタデータは、key がソートされているか否かを示す
+
+## Arrow format versioning and stability
+2つのバージョンニングが存在する
+- format version
+- library version
+
+## Would you download a library? Of course!
+- Arrow の仕様を明確に実装したもの
+  -> C++, C#, GO, Java, JavaScript, Julia, Rust
+- 他の実装上に実装されたもの
+  -> C, MATLAB, Python, R, Ruby
+  - ^ C++ のライブラリー上に実装されている
+
