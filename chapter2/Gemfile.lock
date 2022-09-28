@@ -13,19 +13,29 @@ GEM
     gobject-introspection (4.0.3)
       glib2 (= 4.0.3)
     native-package-installer (1.1.5)
+    numpy (0.4.0)
+      pycall (>= 1.2.0.beta1)
+    pandas (0.3.8)
+      numpy
+      pycall (>= 1.0.0)
     pkg-config (1.4.9)
+    pycall (1.4.1)
     red-arrow (9.0.0)
       bigdecimal (>= 3.1.0)
       extpp (>= 0.0.7)
       gio2 (>= 3.5.0)
       native-package-installer
       pkg-config
+    red-parquet (9.0.0)
+      red-arrow (= 9.0.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  pandas
   red-arrow
+  red-parquet
 
 BUNDLED WITH
    2.3.21
