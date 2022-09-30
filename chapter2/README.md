@@ -26,3 +26,9 @@ chunked arrays と tables の説明をしていくよ
 
 ## Accessing data files with pyarrow(red arrow)
 
+pandas では、下記のことをサポートしていない
+- DataFrame では、ネスとしたカラムをサポートしていない
+- Null のカラムをサポートしていない(一部のカラムはできているよ)
+- DateTime には、ns のみ使われる
+
+^ どちらも Arrow ではサポートしている
