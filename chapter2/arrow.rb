@@ -19,3 +19,11 @@ pp arrow_json_table.columns[0]
 ## Load Parquet
 pp arrow_parquet_table = Arrow::Table.load('../sample_data/train.parquet')
 
+Input = Arrow::MemoryMappedInputStream
+Input.open("./pandas.arrow") do |input|
+  reader = Arrow::RecordBatchFileReader.new(input)
+  reader.each do |record_batch|
+    puts "" * 40
+    puts record_batch
+  end
+end
