@@ -2,6 +2,7 @@ import pyarrow as pa
 import pyarrow.csv
 import pandas as pd
 import timeit
+import numpy as np
 
 from datetime import date
 
@@ -49,3 +50,12 @@ print(df)
 
 table = pa.Table.from_pandas(df)
 print('table', table)
+
+nrows = 1_000_000
+ncols = 100
+arr = np.random.randn(nrows)
+data = {'f{}'.format(i): arr for i in range(ncols)}
+print(data)
+# result = timeit.timeit('pd.DataFrame(data)', globals=globals())
+# result = timeit.timeit('pa.table(data).to_pandas(split_blocks=True)', globals=globals())
+# print(result)
