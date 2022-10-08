@@ -50,3 +50,11 @@ from pandas で変換される際には、preserve_index がデータの index �
 ## Keeping pandas from running wild
 
 ## Sharing is caring ... epecially when it's your memory
+
+### Diving into memory management
+
+メモリを管理や追跡するための memory pools をどのように共有しているか
+
+C++
+- arrow::MemoryPool class がメモリの配置の管理やチェックを行なっている
+- arrow::default_memory_pool
