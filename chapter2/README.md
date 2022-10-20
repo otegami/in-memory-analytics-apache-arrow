@@ -57,4 +57,18 @@ from pandas で変換される際には、preserve_index がデータの index �
 
 C++
 - arrow::MemoryPool class がメモリの配置の管理やチェックを行なっている
-- arrow::default_memory_pool
+- プロセスのデフォルトのメモリープールは、ライブラリー初期化時に初期化される
+  - arrow::default_memory_pool
+
+Memory allocators
+- jemalloc or mimalloc は malloc よりも、システムメモリーの利用率や配置に関して優れている（実際に確かめてみるのが良いよ）
+
+- Buffer の管理は、arrow::Buffer が行っている
+  - Buffer Builder によって、Buffer は事前に配置される STL コンテイナーの std::vector ように Resize や Reserve メソッドを通して
+- Buffer インスタンスは、内部のバッファーをスライスでき、追加データのコピーを避ける
+- 配置された Buffer は、長さとキャパシティを持っている
+
+### Managing buffers for performance
+
+- 大量のデータがあった際には、カラムごとにメモリの配置は変えずに、Slice 単位に分けることで、並列処理で対応できる
+- bitmap を利用して、null のデータがあった際には、効率的にフィルタリングが可能である
