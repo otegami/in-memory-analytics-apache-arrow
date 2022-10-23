@@ -90,3 +90,36 @@ Flat buffers はかなり効率的である
 - FlatBuffers Bytes <- Metadata
 - Padding to 8-bytes
 - Message Body Bytes
+
+FlatBuffers の構造
+
+```c++
+table Message {
+  version: org.apache.arrow.flatbuf.MetadataVersion;
+  header: MessageHeader; <- Schema, RecordBatch or DictionaryBatch
+  bodyLength: long;
+  custom_metadata: [ keyValue ];
+}
+```
+
+Record-Batch message
+RecordBatch FlatBuffer message
+- Length
+- Null Count
+
+Raw Buffers data make up Record Batch(最後の部分は 8 bytes padding が含まれる)
+- validity bitmap, raw data, offsets, and so on
+
+最後の 8 bytes のメッセージを読むことで、次のデータが存在するかを確認できる
+
+0xFFFFFFFF: まだ続くデータが存在する
+0x00000000: **続くデータが存在しない**
+
+Random Access Format
+
+ARROW1 <- Magic String
+Empty padding to 8 bytes boundary
+Data Using the Streaming Format with EOS indicator
+FlatBuffer Footer Message Bytes
+32-bit Little Endian Int <- Footer Size
+ARROW1 <- Magic String
