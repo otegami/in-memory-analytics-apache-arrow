@@ -127,3 +127,51 @@ ARROW1 <- Magic String
 ### Producing and consuming Arrows
 - Version 1 Feather Format
 - Version 2 Feather Format: Arrow IPC format
+
+## Learning about memory cartography
+
+Apache Spark のような分散システムの魅力の一つは、非常に大きなデータセットを素早く処理できること
+
+データセットが非表示大きい時に一つのマシンのメモリには全てが乗らない時がある
+
+## Parquet versus CSV
+全体のデータ量を知りたい時
+- CSV では全てのデータを読む必要がある
+- Parquet では、カラム一列を読めばわかる
+
+### Mapping data into Memory
+`arrow.rb` にて、実験してみた
+
+### Too long; didn' read (TL;DR) - Computers are magic
+
+処理中のプロセスのためにメモリがどのように動いてるか理解する必要がある
+
+#### Virtual and physical memory space
+
+virtual memory 上ではシーケンシャルに並んでいる情報も、physical memory 上では分散して並んでいる
+
+いくつかの利点が存在する
+- プロセスが共有メモリのスペースを管理する必要がない
+- オペレーションシステムは同じメモリスペースの共有やメモリ全体の消費を抑えられるプロセス間の
+- 他のプロセスからプロセスのメモリを独立させられるのでセキュリティ的にも良い
+- コンセプト的には、物理メモリよりも多くのメモリを管理or参照できる
+
+#### What does memory mapping do?
+ Memory mapping は機能である
+ - POSIX(Portable Operating System Interface) mmap 機能を定義している
+
+例えば、data.arrow が　Kernel Page Cache 上にマッピングされていたら、異なる Virtual Memory Process から参照することができる
+
+1.77GB のファイルをメモリマッピングすることで、ライブラリは、まるですでにメモリ上にあるかのようにファイルを扱うことができる
+
+#### Memory mapping is not a sliver bullet
+対応するファイルデータがメモリ上にまだ存在しない時、minor page faults が起きてしまう。
+- これは、既存の I/O よりもコストが高くなってしまう
+
+Memory Mapping に関して下記のサイトがすごく参考になる
+- https://mkguytone.github.io/allocator-navigatable/ch68.html
+
+memory 上に乗らないような大量のデータを扱うとパフォーマンスが低下してしまうので、実際に利用する際には分析対象のデータを絞って扱う必要がありそう
+
+必ずしも Arrow が最適なわけではないので、状況にあった format を選ぶべきだよ(気をつけよう!)
+
