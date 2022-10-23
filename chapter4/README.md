@@ -123,3 +123,7 @@ Data Using the Streaming Format with EOS indicator
 FlatBuffer Footer Message Bytes
 32-bit Little Endian Int <- Footer Size
 ARROW1 <- Magic String
+
+### Producing and consuming Arrows
+- Version 1 Feather Format
+- Version 2 Feather Format: Arrow IPC format
