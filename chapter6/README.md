@@ -19,3 +19,7 @@ e.x. min, mean and sum
 #### Element-wise or scalar functions
 
 ## Executing compute functions
+
+## Picking the right tools
+### Adding a constant value to an array
+
